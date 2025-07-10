@@ -1,0 +1,80 @@
+# 🍉 Watermelon ML Project Dependencies
+
+# Core ML Framework
+torch>=1.12.0
+torchvision>=0.13.0
+torchaudio>=0.12.0
+
+# Audio Processing
+librosa>=0.9.0
+soundfile>=0.12.0
+
+# Data Science & Numerical Computing
+numpy>=1.21.0
+pandas>=1.4.0
+scipy>=1.8.0
+
+# Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.8.0
+
+# Machine Learning
+scikit-learn>=1.1.0
+
+# Model Conversion & Deployment
+onnx>=1.12.0
+onnxruntime>=1.12.0
+coremltools>=6.0
+
+# Experiment Tracking & Logging
+tensorboard>=2.9.0
+tqdm>=4.64.0
+
+# Configuration & File Handling
+PyYAML>=6.0
+pydantic>=1.9.0
+
+# Jupyter & Development
+jupyter>=1.0.0
+jupyterlab>=3.4.0
+ipykernel>=6.13.0
+
+# Testing
+pytest>=7.1.0
+pytest-cov>=3.0.0
+pytest-mock>=3.7.0
+
+# Code Quality
+black>=22.3.0
+isort>=5.10.0
+flake8>=4.0.0
+mypy>=0.950
+
+# Data Validation
+great-expectations>=0.15.0
+
+# Web Framework (for API)
+fastapi>=0.75.0
+uvicorn>=0.17.0
+python-multipart>=0.0.5
+
+# Utilities
+python-dotenv>=0.20.0
+click>=8.1.0
+requests>=2.27.0
+
+# Audio File Format Support
+pydub>=0.25.1
+mutagen>=1.45.0
+
+# Image Processing (for spectrograms)
+Pillow>=9.1.0
+opencv-python>=4.5.0
+
+# Progress Bars
+rich>=12.3.0
+
+# Memory Profiling (optional, for optimization)
+memory-profiler>=0.60.0
+psutil>=5.9.0 

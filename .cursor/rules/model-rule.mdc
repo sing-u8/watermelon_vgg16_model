@@ -1,0 +1,229 @@
+---
+alwaysApply: true
+---
+# 🍉 Watermelon Ripeness & Sweetness Detection ML Project
+
+## 프로젝트 개요
+수박을 친 소리를 기반으로 수박의 당도와 숙성도를 판별하는 머신러닝 모델 개발 프로젝트
+
+### 목표
+- 오디오 신호 → 멜-스펙트로그램 → CNN 분류 파이프라인 구축
+- PyTorch 기반 VGG-16 CNN 모델 개발
+- iOS 앱 배포를 위한 모델 변환 (PyTorch → ONNX → Core ML)
+
+## 기술 스택 & 아키텍처
+
+### Core Technologies
+- **Framework**: PyTorch
+- **Model Architecture**: VGG-16 기반 CNN
+- **Audio Processing**: librosa
+- **Model Conversion**: ONNX, coremltools
+- **Python Version**: Python 3.x
+
+### 데이터 파이프라인
+```
+Audio Files (.m4a, .mp3, .wav) 
+    ↓ (librosa)
+Mel-Spectrogram 
+    ↓ (CNN)
+Sweetness/Ripeness Prediction
+```
+
+### 모델 변환 파이프라인
+```
+PyTorch Model (.pth)
+    ↓ (torch.onnx.export)
+ONNX Model (.onnx)
+    ↓ (coremltools)
+Core ML Model (.mlmodel)
+```
+
+## 프로젝트 구조 가이드라인
+
+### 표준 ML 프로젝트 디렉토리 구조
+```
+├── src/                    # 소스 코드
+│   ├── data/              # 데이터 처리 모듈
+│   ├── models/            # 모델 아키텍처
+│   ├── training/          # 훈련 파이프라인
+│   ├── evaluation/        # 평가 모듈
+│   ├── utils/             # 유틸리티 함수
+│   └── inference/         # 추론 파이프라인
+├── configs/               # 설정 파일 (YAML)
+├── data/                  # 데이터셋 디렉토리
+├── models/                # 저장된 모델 파일
+├── experiments/           # 실험 결과 및 로그
+├── notebooks/             # Jupyter 노트북
+├── tests/                 # 테스트 코드
+├── scripts/               # 실행 스크립트
+└── requirements.txt       # 패키지 의존성
+```
+
+## 개발 가이드라인
+
+### 코드 품질 규칙
+1. **모듈화**: 각 기능별로 독립적인 모듈 구성
+2. **재사용성**: 공통 기능은 utils에 분리
+3. **설정 관리**: YAML 파일로 하이퍼파라미터 및 설정 관리
+4. **타입 힌팅**: Python type hints 적극 활용
+5. **문서화**: docstring 및 주석 필수
+
+### 파일 명명 규칙
+- 클래스: `PascalCase` (예: `WatermelonDataset`)
+- 함수/변수: `snake_case` (예: `load_audio_file`)
+- 상수: `UPPER_SNAKE_CASE` (예: `SAMPLE_RATE`)
+- 파일: `snake_case.py` (예: `audio_preprocessor.py`)
+
+## 데이터 처리 규칙
+
+### 오디오 전처리 표준
+- **샘플링 레이트**: 22050 Hz (표준)
+- **멜-스펙트로그램 파라미터**:
+  - n_mels: 128
+  - fft_size: 2048
+  - hop_length: 512
+- **정규화**: 0-1 범위로 스케일링
+- **데이터 증강**: noise, time shift, pitch shift 적용
+
+### 라벨링 규칙
+- 폴더명 패턴: `{번호}_{당도값}` (예: `1_10.5`)
+- 당도값은 float 타입으로 처리
+- 회귀 문제로 접근 (연속값 예측)
+
+## ML 모델 개발 규칙
+
+### 모델 아키텍처
+- **Base**: VGG-16 pretrained model
+- **수정사항**: 
+  - 마지막 레이어를 당도 예측용으로 변경
+  - 입력 채널을 멜-스펙트로그램에 맞게 조정
+- **Loss Function**: MSE 또는 MAE (회귀)
+- **Optimizer**: Adam (기본), SGD (대안)
+
+### 훈련 가이드라인
+- **데이터 분할**: Train(70%) / Validation(15%) / Test(15%)
+- **배치 크기**: 32 (기본값, GPU 메모리에 따라 조정)
+- **학습률**: 0.001 (초기값)
+- **Early Stopping**: Validation loss 기준
+- **체크포인트**: epoch마다 최적 모델 저장
+
+### 실험 관리
+- **로깅**: TensorBoard 또는 MLflow 활용
+- **메트릭 추적**: Loss, MAE, MSE, R² score
+- **하이퍼파라미터**: 모든 실험 설정 기록
+- **재현성**: random seed 고정
+
+## 모델 변환 규칙
+
+### PyTorch → ONNX
+```python
+# 표준 변환 코드 패턴
+torch.onnx.export(
+    model, 
+    dummy_input, 
+    "model.onnx",
+    export_params=True,
+    opset_version=11,
+    do_constant_folding=True,
+    input_names=['input'],
+    output_names=['output']
+)
+```
+
+### ONNX → Core ML
+```python
+# coremltools 활용 패턴
+import coremltools as ct
+model = ct.convert(onnx_model, inputs=[ct.TensorType(shape=input_shape)])
+model.save("watermelon_model.mlmodel")
+```
+
+## 필수 패키지 요구사항
+
+```txt
+torch>=1.12.0
+torchvision>=0.13.0
+librosa>=0.9.0
+numpy>=1.21.0
+matplotlib>=3.5.0
+scikit-learn>=1.1.0
+tensorboard>=2.9.0
+onnx>=1.12.0
+coremltools>=6.0
+PyYAML>=6.0
+tqdm>=4.64.0
+```
+
+## 성능 최적화 규칙
+
+### iOS 배포 최적화
+- **모델 크기**: 50MB 이하 목표
+- **Quantization**: Core ML 변환 시 적용
+- **입력 크기**: 224x224 (VGG-16 표준)
+- **추론 속도**: 실시간 처리 가능한 수준
+
+### 메모리 최적화
+- **배치 처리**: GPU 메모리 한계 고려
+- **그래디언트 체크포인팅**: 큰 모델의 경우 적용
+- **데이터 로더**: num_workers 최적화
+
+## 테스트 & 검증 규칙
+
+### 단위 테스트
+- 각 모듈별 독립적인 테스트
+- 데이터 로딩, 전처리, 모델 추론 검증
+- pytest 프레임워크 활용
+
+### 통합 테스트
+- End-to-end 파이프라인 테스트
+- 모델 변환 프로세스 검증
+- 성능 벤치마크 테스트
+
+## 문서화 규칙
+
+### README 필수 포함 사항
+- 프로젝트 설명 및 목표
+- 설치 및 환경 설정 방법
+- 데이터셋 준비 및 전처리 가이드
+- 모델 훈련 및 평가 방법
+- iOS 배포용 모델 변환 방법
+- API 사용법 및 예제
+
+### 코드 문서화
+- 모든 클래스와 함수에 docstring 필수
+- 복잡한 알고리즘은 inline comment 추가
+- 설정 파일은 주석으로 각 파라미터 설명
+
+## Git 워크플로우
+
+### 브랜치 전략
+- `main`: 안정화된 코드
+- `develop`: 개발 진행 브랜치
+- `feature/*`: 기능별 브랜치
+- `experiment/*`: 실험용 브랜치
+
+### 커밋 메시지 규칙
+```
+feat: 새로운 기능 추가
+fix: 버그 수정
+docs: 문서 수정
+refactor: 코드 리팩토링
+test: 테스트 추가/수정
+model: 모델 아키텍처 변경
+data: 데이터 처리 관련 변경
+```
+
+## 주의사항
+
+1. **데이터 보안**: 원본 오디오 파일의 저작권 및 개인정보 보호
+2. **모델 성능**: 실제 수박 판별 정확도 검증 필요
+3. **iOS 호환성**: Core ML 버전 호환성 확인
+4. **실시간 처리**: 모바일 환경에서의 성능 최적화
+5. **확장성**: 다른 과일로의 확장 가능성 고려
+
+## 진행사항 업데이트 방법
+1. 각 테스크가 완료될 때마다 @progress-rule.mdc에 진행상황을 업데이트 한다.
+
+---
+
+이 규칙을 따라 체계적이고 재사용 가능한 ML 프로젝트를 구축하세요. 🚀 

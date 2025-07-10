@@ -1,0 +1,239 @@
+# 🍉 Watermelon Model Training Configuration - Ensemble Experiment
+
+# Model Configuration
+model:
+  # VGGWatermelon Model Parameters
+  input_channels: 3        # RGB channels for mel-spectrogram
+  pretrained: true         # Use pretrained VGG-16 weights
+  dropout_rate: 0.6        # Balanced dropout (between best experiments)
+  freeze_features: false   # Whether to freeze feature extraction layers
+  num_fc_layers: 2         # Number of fully connected layers
+  fc_hidden_size: 512      # Hidden size of FC layers
+
+# Training Parameters
+training:
+  # Basic Settings
+  epochs: 20              # Longer training for ensemble
+  save_every: 5
+  validate_every: 1
+  early_stopping: true
+  verbose: true
+  
+# Data Configuration - Use optimal batch size from experiments
+data:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  batch_size: 32          # Use best performing batch size
+  num_workers: 4
+  pin_memory: true
+  use_augmentation: true
+  stratify_by_sweetness: true
+  random_seed: 42
+  
+  # Mixed Precision Training
+  mixed_precision:
+    enabled: true    # Enable for ensemble efficiency
+    scaler_init_scale: 65536
+  
+  # Data Loading
+  dataloader:
+    shuffle_train: true
+    shuffle_val: false
+    drop_last: true
+    persistent_workers: true
+
+# Optimizer Configuration
+optimizer:
+  type: "adamw"         # Use AdamW for better regularization
+  lr: 0.00005           # Slightly lower LR for ensemble stability
+  weight_decay: 1e-3    # Enhanced weight decay
+  momentum: 0.9         # For SGD
+
+# Learning Rate Scheduler
+scheduler:
+  enabled: true
+  type: "cosine"        # Cosine annealing for smooth convergence
+  factor: 0.5           # ReduceLROnPlateau factor
+  patience: 7           # Increased patience
+  step_size: 10         # StepLR step_size
+  gamma: 0.1            # StepLR gamma
+  T_max: 20             # CosineAnnealingLR T_max
+  eta_min: 1e-7         # CosineAnnealingLR eta_min
+
+# Loss Function - Use successful MSE
+loss:
+  type: "mse"             # MSE showed best results in experiments
+  reduction: "mean"       # mean, sum, none
+  huber_delta: 1.0        # Huber loss delta parameter
+  quantile_alpha: 0.5     # Quantile loss alpha parameter
+
+# Early Stopping
+early_stopping:
+  enabled: true
+  monitor: "val_loss"     # val_loss, val_mae, val_r2
+  mode: "min"             # min for loss, max for metrics
+  patience: 12            # Increased patience for ensemble
+  min_delta: 0.0001       # Stricter improvement threshold
+  restore_best_weights: true
+
+# Model Checkpointing
+checkpointing:
+  enabled: true
+  save_best_only: true
+  monitor: "val_loss"
+  mode: "min"
+  save_top_k: 5           # Keep top 5 models for ensemble
+  every_n_epochs: 5       # Save checkpoint every N epochs
+  
+  # Checkpoint paths
+  checkpoint_dir: "experiments/checkpoints"
+  filename_template: "watermelon_ensemble_epoch_{epoch:03d}_val_loss_{val_loss:.4f}"
+
+# Validation Configuration
+validation:
+  frequency: 1            # Validate every N epochs
+  metrics:
+    - "mae"              # Mean Absolute Error
+    - "mse"              # Mean Squared Error
+    - "r2_score"         # R² Score
+    - "mape"             # Mean Absolute Percentage Error
+  
+  # Validation thresholds
+  thresholds:
+    mae: 0.3             # Target MAE < 0.3 (ambitious goal)
+    r2_score: 0.5        # Target R² > 0.5
+
+# Logging Configuration
+logging:
+  # TensorBoard
+  tensorboard:
+    enabled: true
+    log_dir: "experiments/tensorboard"
+    log_every_n_steps: 5     # More frequent logging
+    log_images: true         # Log sample spectrograms
+    
+  # Console Logging
+  console:
+    enabled: true
+    log_level: "INFO"    # DEBUG, INFO, WARNING, ERROR
+    log_frequency: 5     # More frequent logging
+  
+  # Model Graph Logging
+  log_model: true
+
+# Data Augmentation - Enhanced for ensemble diversity
+augmentation:
+  enabled: true
+  probability: 0.8       # Higher augmentation for diversity
+  
+  # Audio augmentations
+  techniques:
+    noise_injection:
+      enabled: true
+      snr_range: [10, 35]    # Wider noise range
+    
+    time_shift:
+      enabled: true
+      shift_range: [-0.3, 0.3]  # Wider time shift
+    
+    pitch_shift:
+      enabled: true
+      semitone_range: [-3, 3]   # Wider pitch shift
+    
+    volume_scaling:
+      enabled: true
+      scale_range: [0.7, 1.3]   # Wider volume scaling
+    
+    frequency_masking:
+      enabled: true
+      mask_param: 15
+      num_masks: 2
+
+# Reproducibility
+reproducibility:
+  deterministic: false   # Allow some randomness for ensemble diversity
+  benchmark: true        # Enable cuDNN benchmark for speed
+  seed_workers: true     # Seed worker processes
+
+# Advanced Training Techniques - All enabled for ensemble
+advanced:
+  # Gradient Clipping
+  gradient_clipping:
+    enabled: true
+    max_norm: 0.5          # Stricter clipping for stability
+    norm_type: 2
+  
+  # Label Smoothing
+  label_smoothing:
+    enabled: true
+    smoothing: 0.05        # Light smoothing
+  
+  # Warmup
+  warmup:
+    enabled: true
+    warmup_epochs: 3
+    warmup_factor: 0.1
+  
+  # Stochastic Weight Averaging
+  swa:
+    enabled: true
+    swa_start: 10          # Start SWA at epoch 10
+    swa_freq: 2            # Update every 2 epochs
+    swa_lr: 0.00001        # SWA learning rate
+
+# Experiment Tracking
+experiment:
+  name: "watermelon_vgg16_ensemble"
+  description: "Ensemble model combining best techniques from all successful experiments"
+  tags: ["vgg16", "regression", "audio", "watermelon", "ensemble", "best_practices"]
+  
+  # MLflow tracking (optional)
+  mlflow:
+    enabled: false
+    experiment_name: "watermelon_sweetness"
+    tracking_uri: "file:./experiments/mlruns"
+  
+  # Weights & Biases (optional)
+  wandb:
+    enabled: false
+    project: "watermelon_sweetness"
+    entity: "watermelon_team"
+    
+# Performance Monitoring
+performance:
+  # Memory monitoring
+  memory:
+    track_memory: true
+    log_memory_usage: true
+    memory_cleanup: true
+  
+  # Training speed monitoring
+  speed:
+    track_training_time: true
+    log_batch_time: true
+    profile_training: true
+  
+  # Model size monitoring
+  model_size:
+    track_model_size: true
+    log_model_params: true
+    
+# Ensemble Configuration
+ensemble:
+  # Model diversity techniques
+  diversity:
+    different_seeds: [42, 123, 456, 789, 999]  # Multiple random seeds
+    different_augmentations: true              # Varied augmentation strategies
+    different_dropouts: [0.5, 0.6, 0.7]      # Different dropout rates
+  
+  # Ensemble combination methods
+  combination:
+    method: "weighted_average"  # simple_average, weighted_average, stacking
+    weights: "performance_based"  # equal, performance_based, learned
+    
+  # Cross-validation for ensemble training
+  cross_validation:
+    enabled: true
+    folds: 5
+    stratified: true 

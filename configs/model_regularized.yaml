@@ -1,0 +1,79 @@
+# 🍉 Watermelon VGG-16 Model Configuration - Regularization Enhanced
+
+# Model Architecture Settings
+model:
+  name: "VGGWatermelon"
+  description: "VGG-16 based regression model with enhanced regularization for watermelon sweetness prediction"
+  
+  # VGGWatermelon Model Parameters - ENHANCED REGULARIZATION
+  input_channels: 3        # RGB channels for mel-spectrogram
+  pretrained: true         # Use pretrained VGG-16 weights
+  dropout_rate: 0.7        # ENHANCED: 0.5 → 0.7 for stronger regularization
+  freeze_features: false   # Whether to freeze feature extraction layers
+  num_fc_layers: 2         # Number of fully connected layers
+  fc_hidden_size: 512      # Hidden size of FC layers
+  
+  # Input Configuration
+  input:
+    height: 224  # Standard VGG-16 input size
+    width: 224   # Standard VGG-16 input size
+  
+  # Output Configuration
+  output:
+    task: "regression"    # Task type
+    min_value: 8.0        # Minimum sweetness value (from dataset analysis)
+    max_value: 13.0       # Maximum sweetness value (from dataset analysis)
+    activation: null      # No activation for regression output
+
+# Model Optimization - ENHANCED REGULARIZATION
+optimization:
+  # Weight Initialization
+  init_method: "xavier_uniform"
+  
+  # Regularization - ENHANCED
+  weight_decay: 1e-3      # ENHANCED: 1e-4 → 1e-3 (matches training config)
+  batch_norm: false       # VGG-16 doesn't use batch norm by default
+  
+  # Advanced Techniques - ENABLED for regularization
+  gradient_clipping:
+    enabled: true         # ENABLED for stability
+    max_norm: 1.0
+
+# Model Export Settings
+export:
+  # ONNX Export
+  onnx:
+    opset_version: 11
+    dynamic_axes: false
+    optimize: true
+  
+  # Core ML Export
+  coreml:
+    minimum_deployment_target: "13.0"  # iOS 13.0+
+    compute_units: "cpu_and_gpu"
+    quantization: "linear"             # Quantization type
+  
+  # Model Compression
+  compression:
+    enabled: true
+    target_size_mb: 50    # Target model size for iOS deployment
+
+# Model Metadata
+metadata:
+  version: "1.1.0"         # Version bump for regularized model
+  author: "Watermelon ML Team"
+  created_date: "2025-01-10"
+  description: "VGG-16 based CNN with enhanced regularization (dropout=0.7, weight_decay=1e-3) for predicting watermelon sweetness from audio spectrograms"
+  
+  # Model Performance Targets
+  performance_targets:
+    mae: 0.5              # Mean Absolute Error < 0.5
+    r2_score: 0.8         # R² Score > 0.8
+    inference_time_ms: 1000  # Inference time < 1 second
+  
+  # Regularization Notes
+  regularization_notes:
+    dropout_increase: "Increased from 0.5 to 0.7 for overfitting prevention"
+    weight_decay_increase: "Increased from 1e-4 to 1e-3 for L2 regularization"
+    augmentation_enhanced: "Stronger data augmentation parameters"
+    gradient_clipping: "Enabled for training stability" 

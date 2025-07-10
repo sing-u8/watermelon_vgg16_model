@@ -1,0 +1,278 @@
+# 🍉 Watermelon ML Project .gitignore
+
+# ======================================
+# Python
+# ======================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# data
+watermelon_sound_data/*
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# ======================================
+# Jupyter Notebook
+# ======================================
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# ======================================
+# Virtual Environments
+# ======================================
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ======================================
+# PyTorch & ML Models
+# ======================================
+*.pth
+*.pt
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.onnx
+*.mlmodel
+*.tflite
+*.pb
+
+# Model checkpoints
+checkpoints/
+*.ckpt
+*.checkpoint
+
+# ======================================
+# Data Files (add specific patterns as needed)
+# ======================================
+# Uncomment if you want to exclude large data files
+# *.wav
+# *.mp3
+# *.m4a
+# *.flac
+# *.aiff
+
+# Large datasets
+data/processed/
+data/raw/
+data/external/
+*.csv
+*.json
+*.parquet
+*.feather
+
+# ======================================
+# Experiment & Logging
+# ======================================
+experiments/tensorboard/
+experiments/checkpoints/
+experiments/results/
+experiments/logs/
+logs/
+mlruns/
+.mlflow/
+wandb/
+neptune/
+
+# TensorBoard logs
+events.out.tfevents.*
+*.tfevent
+
+# ======================================
+# IDE & Editor
+# ======================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ======================================
+# Operating System
+# ======================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ======================================
+# Configuration & Secrets
+# ======================================
+.env
+.env.local
+.env.*.local
+config/secrets.yaml
+config/local.yaml
+*.key
+*.pem
+*.p12
+*.pfx
+
+# ======================================
+# Temporary & Cache Files
+# ======================================
+*.tmp
+*.temp
+*.log
+*.pid
+*.seed
+*.pid.lock
+.npm
+.yarn-integrity
+
+# ======================================
+# Documentation Build
+# ======================================
+docs/_build/
+site/
+
+# ======================================
+# Database
+# ======================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ======================================
+# Docker
+# ======================================
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# ======================================
+# Miscellaneous
+# ======================================
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+
+# PyCharm specific
+#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
+#  be added to the global gitignore or merged into this file.
+
+# ======================================
+# Project Specific
+# ======================================
+# Processed audio spectrograms (if large)
+# spectrograms/
+
+# Model outputs and predictions
+predictions/
+outputs/
+
+# Large temporary files
+temp/
+tmp/
+
+# Benchmark results
+benchmarks/results/ 

@@ -1,0 +1,265 @@
+# 🍉 Watermelon Data Processing Configuration
+
+# Dataset Configuration
+dataset:
+  name: "watermelon_sound_dataset"
+  description: "Audio recordings of watermelon tapping for sweetness prediction"
+  
+  # Data Paths
+  paths:
+    raw_data: "watermelon_sound_data"
+    processed_data: "data/processed"
+    cache_dir: "data/cache"
+    metadata_file: "data/metadata.json"
+  
+  # Dataset Split
+  split:
+    train_ratio: 0.70
+    val_ratio: 0.15
+    test_ratio: 0.15
+    stratify: true        # Stratify by sweetness values
+    random_seed: 42
+  
+  # Label Configuration
+  labels:
+    target_column: "sweetness"
+    label_type: "regression"
+    min_value: 8.0        # Minimum sweetness in dataset
+    max_value: 13.0       # Maximum sweetness in dataset
+    
+    # Label parsing from folder names
+    folder_pattern: r"(\d+)_(\d+\.?\d*)"  # Regex: {number}_{sweetness}
+    sweetness_index: 1    # Index in regex groups (0-based)
+
+# Audio Processing Configuration
+audio:
+  # File Formats
+  supported_formats: [".wav", ".m4a", ".mp3", ".flac"]
+  output_format: ".wav"
+  
+  # Basic Audio Parameters
+  sample_rate: 22050    # Target sampling rate (Hz)
+  duration: null        # Max duration (seconds), null for no limit
+  normalize: true       # Normalize audio amplitude
+  
+  # Audio Loading
+  loading:
+    mono: true          # Convert to mono
+    offset: 0.0         # Start offset (seconds)
+    duration_limit: 5.0 # Maximum duration to load (seconds)
+    normalize_loudness: false  # Loudness normalization
+    
+  # Preprocessing
+  preprocessing:
+    remove_silence:
+      enabled: true
+      threshold_db: -40   # Silence threshold in dB
+      min_duration: 0.1   # Minimum duration for non-silence
+    
+    trim_audio:
+      enabled: true
+      top_db: 20          # Trim silence above this threshold
+    
+    filter:
+      enabled: false
+      high_pass_freq: 50  # High-pass filter frequency (Hz)
+      low_pass_freq: 8000 # Low-pass filter frequency (Hz)
+
+# Mel-Spectrogram Configuration
+spectrogram:
+  # FFT Parameters
+  n_fft: 2048           # FFT window size
+  hop_length: 512       # Hop length (stride)
+  win_length: null      # Window length (default: n_fft)
+  window: "hann"        # Window function
+  
+  # Mel Filter Bank
+  n_mels: 128           # Number of mel bands
+  fmin: 0               # Minimum frequency (Hz)
+  fmax: null            # Maximum frequency (default: sr/2)
+  
+  # Power Spectrogram
+  power: 2.0            # Power for magnitude spectrogram
+  
+  # Mel Scale
+  htk: false            # Use HTK formula instead of Slaney
+  norm: "slaney"        # Normalization method
+  
+  # Output Configuration
+  output:
+    log_mel: true       # Convert to log mel-spectrogram
+    ref_db: 80.0        # Reference power (dB)
+    amin: 1e-10         # Minimum amplitude
+    top_db: 80.0        # Maximum dB above reference
+    
+  # Resizing for VGG-16
+  resize:
+    enabled: true
+    height: 224         # Target height
+    width: 224          # Target width
+    interpolation: "bilinear"  # Interpolation method
+    
+  # Color Channels
+  channels:
+    mode: "rgb"         # rgb, grayscale, duplicate
+    normalize: true     # Normalize to [0, 1]
+
+# Data Augmentation
+augmentation:
+  enabled: true
+  train_only: true      # Apply only during training
+  
+  # Audio-level Augmentations
+  audio_augmentations:
+    # Additive Noise
+    noise_injection:
+      enabled: true
+      probability: 0.3
+      snr_range: [10, 30]     # Signal-to-noise ratio range (dB)
+      noise_type: "gaussian"   # gaussian, pink, brown
+    
+    # Time Domain
+    time_shift:
+      enabled: true
+      probability: 0.3
+      shift_range: [-0.2, 0.2]  # Shift range in seconds
+    
+    # Frequency Domain
+    pitch_shift:
+      enabled: true
+      probability: 0.2
+      semitone_range: [-2, 2]   # Pitch shift range in semitones
+    
+    # Amplitude
+    volume_scaling:
+      enabled: true
+      probability: 0.3
+      scale_range: [0.8, 1.2]   # Volume scaling range
+    
+    # Speed Change
+    speed_change:
+      enabled: false
+      probability: 0.2
+      speed_range: [0.9, 1.1]   # Speed change range
+  
+  # Spectrogram-level Augmentations
+  spectrogram_augmentations:
+    # Frequency Masking
+    freq_mask:
+      enabled: true
+      probability: 0.2
+      freq_mask_param: 20       # Maximum frequency mask width
+      num_masks: 1              # Number of masks
+    
+    # Time Masking
+    time_mask:
+      enabled: true
+      probability: 0.2
+      time_mask_param: 40       # Maximum time mask width
+      num_masks: 1              # Number of masks
+    
+    # Mixup (at batch level)
+    mixup:
+      enabled: false
+      probability: 0.1
+      alpha: 0.2               # Mixup parameter
+
+# Data Loading
+dataloader:
+  # Performance
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 2
+  
+  # Batch Processing
+  batch_size: 32
+  shuffle_train: true
+  shuffle_val: false
+  drop_last_train: true
+  drop_last_val: false
+  
+  # Memory Management
+  max_cache_size: 1000        # Maximum cached items
+  cache_spectrograms: true    # Cache processed spectrograms
+
+# Data Validation
+validation:
+  # File Validation
+  check_file_integrity: true
+  check_audio_format: true
+  check_duration: true
+  min_duration: 0.1           # Minimum audio duration (seconds)
+  max_duration: 10.0          # Maximum audio duration (seconds)
+  
+  # Label Validation
+  check_labels: true
+  label_range: [0.0, 20.0]    # Valid sweetness range
+  
+  # Quality Checks
+  check_silence: true
+  max_silence_ratio: 0.8      # Maximum silence ratio allowed
+  
+  # Corrupted File Handling
+  skip_corrupted: true
+  log_corrupted: true
+
+# Preprocessing Pipeline
+pipeline:
+  # Stage 1: Audio Loading and Cleaning
+  stage1_audio:
+    - "load_audio"
+    - "normalize_amplitude"
+    - "trim_silence"
+    - "resample"
+  
+  # Stage 2: Feature Extraction
+  stage2_features:
+    - "compute_mel_spectrogram"
+    - "convert_to_db"
+    - "resize_spectrogram"
+    - "normalize_spectrogram"
+  
+  # Stage 3: Data Augmentation (training only)
+  stage3_augmentation:
+    - "apply_audio_augmentations"
+    - "apply_spectrogram_augmentations"
+  
+  # Stage 4: Tensor Conversion
+  stage4_tensor:
+    - "convert_to_tensor"
+    - "expand_channels"
+
+# Performance Optimization
+optimization:
+  # Caching
+  cache_enabled: true
+  cache_format: "hdf5"        # hdf5, pkl, npz
+  
+  # Parallel Processing
+  multiprocessing: true
+  max_workers: 4
+  
+  # Memory Management
+  lazy_loading: true          # Load data on demand
+  memory_limit_gb: 8          # Memory usage limit
+  
+  # Preprocessing Acceleration
+  use_gpu_preprocessing: false # Use GPU for spectrogram computation
+  batch_preprocessing: true    # Process multiple files at once
+
+# Monitoring and Logging
+monitoring:
+  # Dataset Statistics
+  log_statistics: true
+  plot_distributions: true
+  save_sample_spectrograms: 5
+  
+  # Progress Tracking
+  progress_bar: true
+  log_frequency: 100          # Log every N files
+  
+  # Quality Metrics
+  compute_snr: true           # Signal-to-noise ratio
+  compute_spectral_centroid: true
+  compute_zero_crossing_rate: true 

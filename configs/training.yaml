@@ -1,0 +1,186 @@
+# 🍉 Watermelon Model Training Configuration
+
+# Training Parameters
+training:
+  # Basic Settings
+  epochs: 100
+  save_every: 5
+  validate_every: 1
+  early_stopping: true
+  verbose: true
+  
+# Data Configuration
+data:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  use_augmentation: true
+  stratify_by_sweetness: true
+  random_seed: 42
+  
+  # Mixed Precision Training
+  mixed_precision:
+    enabled: false  # Enable for faster training on newer GPUs
+    scaler_init_scale: 65536
+  
+  # Data Loading
+  dataloader:
+    shuffle_train: true
+    shuffle_val: false
+    drop_last: true
+    persistent_workers: true
+
+# Optimizer Configuration
+optimizer:
+  type: "adam"          # adam, sgd, adamw
+  lr: 0.001
+  weight_decay: 1e-4
+  momentum: 0.9         # For SGD
+
+# Learning Rate Scheduler
+scheduler:
+  enabled: true
+  type: "plateau"       # plateau, step, cosine
+  factor: 0.5           # ReduceLROnPlateau factor
+  patience: 5           # ReduceLROnPlateau patience
+  step_size: 10         # StepLR step_size
+  gamma: 0.1            # StepLR gamma
+  T_max: 50             # CosineAnnealingLR T_max
+  eta_min: 1e-6         # CosineAnnealingLR eta_min
+
+# Loss Function
+loss:
+  type: "mse"             # mse, mae, huber, smooth_l1, weighted_mse, combined
+  reduction: "mean"       # mean, sum, none
+  huber_delta: 1.0        # Huber loss delta parameter
+  quantile_alpha: 0.5     # Quantile loss alpha parameter
+
+# Early Stopping
+early_stopping:
+  enabled: true
+  monitor: "val_loss"     # val_loss, val_mae, val_r2
+  mode: "min"             # min for loss, max for metrics
+  patience: 15            # Epochs to wait before stopping
+  min_delta: 0.001        # Minimum change to qualify as improvement
+  restore_best_weights: true
+
+# Model Checkpointing
+checkpointing:
+  enabled: true
+  save_best_only: true
+  monitor: "val_loss"
+  mode: "min"
+  save_top_k: 3           # Keep top 3 models
+  every_n_epochs: 5       # Save checkpoint every N epochs
+  
+  # Checkpoint paths
+  checkpoint_dir: "experiments/checkpoints"
+  filename_template: "watermelon_model_epoch_{epoch:03d}_val_loss_{val_loss:.4f}"
+
+# Validation Configuration
+validation:
+  frequency: 1            # Validate every N epochs
+  metrics:
+    - "mae"              # Mean Absolute Error
+    - "mse"              # Mean Squared Error
+    - "r2_score"         # R² Score
+    - "mape"             # Mean Absolute Percentage Error
+  
+  # Validation thresholds
+  thresholds:
+    mae: 0.5             # Target MAE < 0.5
+    r2_score: 0.8        # Target R² > 0.8
+
+# Logging Configuration
+logging:
+  # TensorBoard
+  tensorboard:
+    enabled: true
+    log_dir: "experiments/tensorboard"
+    log_every_n_steps: 10
+    log_images: false    # Log sample spectrograms
+    
+  # Console Logging
+  console:
+    enabled: true
+    log_level: "INFO"    # DEBUG, INFO, WARNING, ERROR
+    log_frequency: 10    # Log every N batches
+  
+  # Model Graph Logging
+  log_model: true
+
+# Data Augmentation (during training)
+augmentation:
+  enabled: true
+  probability: 0.5       # Probability to apply augmentation
+  
+  # Audio augmentations
+  techniques:
+    noise_injection:
+      enabled: true
+      snr_range: [10, 30]  # Signal-to-noise ratio range
+    
+    time_shift:
+      enabled: true
+      shift_range: [-0.2, 0.2]  # ±0.2 seconds
+    
+    pitch_shift:
+      enabled: true
+      semitone_range: [-2, 2]   # ±2 semitones
+    
+    volume_scaling:
+      enabled: true
+      scale_range: [0.8, 1.2]   # 0.8x to 1.2x volume
+
+# Reproducibility
+reproducibility:
+  deterministic: true    # Enable deterministic operations
+  benchmark: false       # Disable cuDNN benchmark for reproducibility
+  seed_workers: true     # Seed worker processes
+
+# Advanced Training Techniques
+advanced:
+  # Gradient Clipping
+  gradient_clipping:
+    enabled: false
+    max_norm: 1.0
+    norm_type: 2
+  
+  # Label Smoothing
+  label_smoothing:
+    enabled: false
+    smoothing: 0.1
+  
+  # Warmup
+  warmup:
+    enabled: false
+    warmup_epochs: 5
+    warmup_factor: 0.1
+
+# Experiment Tracking
+experiment:
+  name: "watermelon_vgg16_baseline"
+  description: "VGG-16 baseline model for watermelon sweetness prediction"
+  tags: ["vgg16", "regression", "audio", "watermelon"]
+  
+  # MLflow tracking (optional)
+  mlflow:
+    enabled: false
+    experiment_name: "watermelon_sweetness"
+    tracking_uri: "file:./experiments/mlruns"
+  
+  # Weights & Biases (optional)
+  wandb:
+    enabled: false
+    project: "watermelon_sweetness"
+    entity: "ml_team"
+
+# Resume Training
+resume:
+  enabled: false
+  checkpoint_path: null  # Path to checkpoint file
+  resume_optimizer: true # Resume optimizer state
+  resume_scheduler: true # Resume scheduler state 

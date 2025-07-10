@@ -1,0 +1,196 @@
+# 🍉 Watermelon Model Training Configuration - Regularization Enhanced Experiment
+
+# Model Configuration - ENHANCED REGULARIZATION
+model:
+  # VGGWatermelon Model Parameters - ENHANCED REGULARIZATION
+  input_channels: 3        # RGB channels for mel-spectrogram
+  pretrained: true         # Use pretrained VGG-16 weights
+  dropout_rate: 0.7        # ENHANCED: 0.5 → 0.7 for stronger regularization
+  freeze_features: false   # Whether to freeze feature extraction layers
+  num_fc_layers: 2         # Number of fully connected layers
+  fc_hidden_size: 512      # Hidden size of FC layers
+
+# Training Parameters
+training:
+  # Basic Settings
+  epochs: 15              # Focused experiment
+  save_every: 5
+  validate_every: 1
+  early_stopping: true
+  verbose: true
+  
+# Data Configuration
+data:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  use_augmentation: true
+  stratify_by_sweetness: true
+  random_seed: 42
+  
+  # Mixed Precision Training
+  mixed_precision:
+    enabled: false  # Enable for faster training on newer GPUs
+    scaler_init_scale: 65536
+  
+  # Data Loading
+  dataloader:
+    shuffle_train: true
+    shuffle_val: false
+    drop_last: true
+    persistent_workers: true
+
+# Optimizer Configuration - KEY CHANGE: Enhanced Regularization
+optimizer:
+  type: "adam"          # adam, sgd, adamw
+  lr: 0.001             # Back to baseline for fair comparison
+  weight_decay: 1e-3    # ENHANCED: 1e-4 → 1e-3 (10x increase)
+  momentum: 0.9         # For SGD
+
+# Learning Rate Scheduler
+scheduler:
+  enabled: true
+  type: "plateau"       # plateau, step, cosine
+  factor: 0.5           # ReduceLROnPlateau factor
+  patience: 5           # ReduceLROnPlateau patience
+  step_size: 10         # StepLR step_size
+  gamma: 0.1            # StepLR gamma
+  T_max: 50             # CosineAnnealingLR T_max
+  eta_min: 1e-6         # CosineAnnealingLR eta_min
+
+# Loss Function
+loss:
+  type: "mse"             # mse, mae, huber, smooth_l1, weighted_mse, combined
+  reduction: "mean"       # mean, sum, none
+  huber_delta: 1.0        # Huber loss delta parameter
+  quantile_alpha: 0.5     # Quantile loss alpha parameter
+
+# Early Stopping
+early_stopping:
+  enabled: true
+  monitor: "val_loss"     # val_loss, val_mae, val_r2
+  mode: "min"             # min for loss, max for metrics
+  patience: 10            # Reduced patience for shorter experiment
+  min_delta: 0.001        # Minimum change to qualify as improvement
+  restore_best_weights: true
+
+# Model Checkpointing
+checkpointing:
+  enabled: true
+  save_best_only: true
+  monitor: "val_loss"
+  mode: "min"
+  save_top_k: 3           # Keep top 3 models
+  every_n_epochs: 5       # Save checkpoint every N epochs
+  
+  # Checkpoint paths
+  checkpoint_dir: "experiments/checkpoints"
+  filename_template: "watermelon_model_regularized_epoch_{epoch:03d}_val_loss_{val_loss:.4f}"
+
+# Validation Configuration
+validation:
+  frequency: 1            # Validate every N epochs
+  metrics:
+    - "mae"              # Mean Absolute Error
+    - "mse"              # Mean Squared Error
+    - "r2_score"         # R² Score
+    - "mape"             # Mean Absolute Percentage Error
+  
+  # Validation thresholds
+  thresholds:
+    mae: 0.5             # Target MAE < 0.5
+    r2_score: 0.8        # Target R² > 0.8
+
+# Logging Configuration
+logging:
+  # TensorBoard
+  tensorboard:
+    enabled: true
+    log_dir: "experiments/tensorboard"
+    log_every_n_steps: 10
+    log_images: false    # Log sample spectrograms
+    
+  # Console Logging
+  console:
+    enabled: true
+    log_level: "INFO"    # DEBUG, INFO, WARNING, ERROR
+    log_frequency: 10    # Log every N batches
+  
+  # Model Graph Logging
+  log_model: true
+
+# Data Augmentation (during training) - ENHANCED for overfitting prevention
+augmentation:
+  enabled: true
+  probability: 0.7       # INCREASED: 0.5 → 0.7 for stronger augmentation
+  
+  # Audio augmentations - Enhanced parameters
+  techniques:
+    noise_injection:
+      enabled: true
+      snr_range: [8, 25]    # ENHANCED: [10, 30] → [8, 25] (more aggressive)
+    
+    time_shift:
+      enabled: true
+      shift_range: [-0.3, 0.3]  # ENHANCED: ±0.2 → ±0.3 seconds
+    
+    pitch_shift:
+      enabled: true
+      semitone_range: [-3, 3]   # ENHANCED: ±2 → ±3 semitones
+    
+    volume_scaling:
+      enabled: true
+      scale_range: [0.7, 1.3]   # ENHANCED: [0.8, 1.2] → [0.7, 1.3]
+
+# Reproducibility
+reproducibility:
+  deterministic: true    # Enable deterministic operations
+  benchmark: false       # Disable cuDNN benchmark for reproducibility
+  seed_workers: true     # Seed worker processes
+
+# Advanced Training Techniques - ENHANCED REGULARIZATION
+advanced:
+  # Gradient Clipping - ENABLED for stability
+  gradient_clipping:
+    enabled: true          # ENABLED
+    max_norm: 1.0
+    norm_type: 2
+  
+  # Label Smoothing - ENABLED for regularization
+  label_smoothing:
+    enabled: true          # ENABLED  
+    smoothing: 0.1
+  
+  # Warmup
+  warmup:
+    enabled: false
+    warmup_epochs: 5
+    warmup_factor: 0.1
+
+# Experiment Tracking
+experiment:
+  name: "watermelon_vgg16_regularized"
+  description: "VGG-16 model with enhanced regularization (weight_decay=1e-3, stronger augmentation) for overfitting mitigation"
+  tags: ["vgg16", "regression", "audio", "watermelon", "regularized", "overfitting_fix", "weight_decay"]
+  
+  # MLflow tracking (optional)
+  mlflow:
+    enabled: false
+    experiment_name: "watermelon_sweetness"
+    tracking_uri: "file:./experiments/mlruns"
+  
+  # Weights & Biases (optional)
+  wandb:
+    enabled: false
+    project: "watermelon_sweetness"
+    entity: "ml_team"
+
+# Resume Training
+resume:
+  enabled: false
+  checkpoint_path: null  # Path to checkpoint file
+  resume_optimizer: true # Resume optimizer state
+  resume_scheduler: true # Resume scheduler state 

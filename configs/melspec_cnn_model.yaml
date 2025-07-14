@@ -1,0 +1,164 @@
+# Mel-Spectrogram CNN 기반 수박 당도 예측 모델 설정
+# 오디오 도메인에 특화된 경량 CNN 모델
+
+experiment_name: "melspec_cnn_exp"
+experiment_id: "melspec_cnn_20250110"
+
+# 데이터 설정
+data:
+  data_root: "watermelon_sound_data"
+  train_ratio: 0.70
+  val_ratio: 0.15  
+  test_ratio: 0.15
+  batch_size: 16  # VGG-16 최적화 설정과 동일
+  num_workers: 4
+  pin_memory: true
+  
+  # 오디오 전처리
+  audio_params:
+    sample_rate: 22050
+    n_mels: 128
+    n_fft: 2048
+    hop_length: 512
+    win_length: 2048
+    f_min: 0.0
+    f_max: 11025.0
+    
+  # 데이터 증강
+  augmentation:
+    enabled: true
+    noise_factor: 0.005
+    time_shift_max: 0.1
+    pitch_shift_max: 2.0
+    volume_change_max: 0.1
+    
+  # 정규화
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+# 모델 설정
+model:
+  input_channels: 3
+  dropout_rate: 0.7  # VGG-16 최적화 설정과 동일
+  num_classes: 1     # 회귀 (당도 예측)
+  base_channels: 32  # 경량화를 위한 기본 채널 수
+
+# 훈련 설정
+training:
+  epochs: 25
+  learning_rate: 0.0001  # VGG-16 최적화 설정과 동일
+  weight_decay: 1e-3     # VGG-16 최적화 설정과 동일
+  optimizer: "adam"
+  scheduler: "step"
+  step_size: 7
+  gamma: 0.7
+  
+  # 손실 함수
+  loss_function: "mse"  # huber도 지원
+  huber_delta: 1.0
+  
+  # Early Stopping
+  early_stopping:
+    enabled: true
+    patience: 5
+    min_delta: 0.001
+    monitor: "val_loss"
+    mode: "min"
+    
+  # 체크포인트
+  checkpoint:
+    save_best: true
+    save_last: true
+    monitor: "val_loss"
+    mode: "min"
+    verbose: true
+
+# 평가 설정
+evaluation:
+  metrics:
+    - "mae"
+    - "mse"
+    - "rmse"
+    - "r2"
+    - "accuracy_0.5"
+    - "accuracy_1.0"
+    - "accuracy_1.5"
+  
+  # 시각화
+  visualization:
+    enabled: true
+    save_plots: true
+    plot_types:
+      - "training_curves"
+      - "predictions_vs_actual"
+      - "error_distribution"
+      - "confusion_matrix"
+
+# 로깅 설정
+logging:
+  use_tensorboard: true
+  log_dir: "experiments/melspec_cnn_exp/logs"
+  log_interval: 10
+  
+  # 저장 경로
+  save_dir: "experiments/melspec_cnn_exp"
+  model_save_path: "experiments/melspec_cnn_exp/best_model.pth"
+  
+# 시드 설정 (재현성)
+seed: 42
+
+# 디바이스 설정
+device: "auto"  # "cuda", "cpu", "auto"
+
+# 모델 변환 설정
+conversion:
+  enabled: true
+  formats:
+    - "onnx"
+    - "coreml"
+  
+  onnx:
+    opset_version: 11
+    dynamic_axes:
+      input: {0: "batch_size"}
+      output: {0: "batch_size"}
+    optimize: true
+    
+  coreml:
+    compute_units: "CPU_AND_GPU"
+    minimum_deployment_target: "iOS13"
+    
+# 성능 목표 (VGG-16 대비)
+performance_targets:
+  val_mae: 0.50    # VGG-16 최고: 0.546 (도메인 특화로 향상 목표)
+  test_mae: 1.4    # VGG-16 최고: 1.527 (도메인 특화로 향상 목표)
+  inference_time: 30  # ms (VGG-16: 85ms 대비 대폭 향상 목표)
+  model_size: 15   # MB (VGG-16: 105MB 대비 대폭 감소)
+  parameters: 2    # Million (VGG-16: 138M 대비 대폭 감소)
+
+# 실험 메모
+notes: |
+  Mel-Spectrogram CNN 기반 수박 당도 예측 모델 실험
+  
+  목표:
+  - 오디오 도메인 특화 설계로 성능 향상
+  - VGG-16 대비 파라미터 수 98% 감소 (138M → 2M)
+  - 멜-스펙트로그램 특성에 최적화된 아키텍처
+  - 최고 속도 및 최소 크기 모델
+  
+  특징:
+  - 5개 Conv 블록으로 단계별 특성 추출
+  - Global Average Pooling으로 파라미터 수 최소화
+  - BatchNorm과 Dropout으로 정규화 강화
+  - 오디오 신호 처리에 적합한 커널 크기 및 구조
+  
+  기대 효과:
+  - 가장 빠른 추론 속도 (30ms 목표)
+  - 가장 작은 모델 크기 (15MB 목표)
+  - 도메인 특화로 인한 성능 향상 가능성
+  - 모바일 배포에 최적화
+  
+  비교 기준:
+  - VGG-16 최고 성능: Val MAE 0.546, Test MAE 1.527
+  - 모든 지표에서 개선 목표 (성능, 속도, 크기) 

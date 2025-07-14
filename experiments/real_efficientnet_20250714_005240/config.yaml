@@ -1,0 +1,58 @@
+data:
+  audio_params:
+    f_max: 11025.0
+    f_min: 0.0
+    hop_length: 512
+    n_fft: 2048
+    n_mels: 128
+    sample_rate: 22050
+    win_length: 2048
+  augmentation:
+    enabled: true
+    noise_factor: 0.005
+    pitch_shift_max: 2.0
+    time_shift_max: 0.1
+    volume_change_max: 0.1
+  batch_size: 16
+  data_root: watermelon_sound_data
+  normalization:
+    mean:
+    - 0.485
+    - 0.456
+    - 0.406
+    std:
+    - 0.229
+    - 0.224
+    - 0.225
+  num_workers: 4
+  pin_memory: true
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+device: auto
+experiment_name: real_efficientnet_exp
+logging:
+  save_dir: experiments/real_efficientnet_exp
+  use_tensorboard: true
+model:
+  dropout_rate: 0.7
+  fc_hidden_size: 256
+  num_fc_layers: 2
+  pretrained: false
+seed: 42
+training:
+  early_stopping:
+    enabled: true
+    min_delta: 0.001
+    mode: min
+    monitor: val_loss
+    patience: 10
+  epochs: 30
+  gamma: 0.7
+  huber_delta: 1.0
+  learning_rate: 0.0001
+  loss_function: mse
+  optimizer: adam
+  scheduler: step
+  step_size: 10
+  weight_decay: 0.0001

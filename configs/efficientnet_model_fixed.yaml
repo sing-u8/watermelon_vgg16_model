@@ -1,0 +1,165 @@
+# EfficientNet 기반 수박 당도 예측 모델 설정 (데이터 분할 비율 조정)
+# 작은 데이터셋에 최적화된 효율적인 모델
+
+experiment_name: "efficientnet_fixed_exp"
+experiment_id: "efficientnet_b0_fixed_20250110"
+
+# 데이터 설정
+data:
+  data_root: "watermelon_sound_data"
+  train_ratio: 0.60  # 70% → 60%로 조정
+  val_ratio: 0.20    # 15% → 20%로 조정 (validation set 확대)
+  test_ratio: 0.20   # 15% → 20%로 조정
+  batch_size: 16  # VGG-16 최적화 설정과 동일
+  num_workers: 4
+  pin_memory: true
+  
+  # 오디오 전처리
+  audio_params:
+    sample_rate: 22050
+    n_mels: 128
+    n_fft: 2048
+    hop_length: 512
+    win_length: 2048
+    f_min: 0.0
+    f_max: 11025.0
+    
+  # 데이터 증강
+  augmentation:
+    enabled: true
+    noise_factor: 0.005
+    time_shift_max: 0.1
+    pitch_shift_max: 2.0
+    volume_change_max: 0.1
+    
+  # 정규화
+  normalization:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+# 모델 설정
+model:
+  model_name: "efficientnet_b0"  # 5.3M 파라미터로 경량화
+  input_channels: 3
+  pretrained: true
+  dropout_rate: 0.7  # VGG-16 최적화 설정과 동일
+  freeze_features: false  # 전체 모델 fine-tuning
+  num_fc_layers: 2
+  fc_hidden_size: 256
+
+# 훈련 설정
+training:
+  epochs: 25
+  learning_rate: 0.0001  # VGG-16 최적화 설정과 동일
+  weight_decay: 1e-3     # VGG-16 최적화 설정과 동일
+  optimizer: "adam"
+  scheduler: "step"
+  step_size: 7
+  gamma: 0.7
+  
+  # 손실 함수
+  loss_function: "mse"  # huber도 지원
+  huber_delta: 1.0
+  
+  # Early Stopping
+  early_stopping:
+    enabled: true
+    patience: 5
+    min_delta: 0.001
+    monitor: "val_loss"
+    mode: "min"
+    
+  # 체크포인트
+  checkpoint:
+    save_best: true
+    save_last: true
+    monitor: "val_loss"
+    mode: "min"
+    verbose: true
+
+# 평가 설정
+evaluation:
+  metrics:
+    - "mae"
+    - "mse"
+    - "rmse"
+    - "r2"
+    - "accuracy_0.5"
+    - "accuracy_1.0"
+    - "accuracy_1.5"
+  
+  # 시각화
+  visualization:
+    enabled: true
+    save_plots: true
+    plot_types:
+      - "training_curves"
+      - "predictions_vs_actual"
+      - "error_distribution"
+      - "confusion_matrix"
+
+# 로깅 설정
+logging:
+  use_tensorboard: true
+  log_dir: "experiments/efficientnet_fixed_exp/logs"
+  log_interval: 10
+  
+  # 저장 경로
+  save_dir: "experiments/efficientnet_fixed_exp"
+  model_save_path: "experiments/efficientnet_fixed_exp/best_model.pth"
+  
+# 시드 설정 (재현성)
+seed: 42
+
+# 디바이스 설정
+device: "auto"  # "cuda", "cpu", "auto"
+
+# 모델 변환 설정
+conversion:
+  enabled: true
+  formats:
+    - "onnx"
+    - "coreml"
+  
+  onnx:
+    opset_version: 11
+    dynamic_axes:
+      input: {0: "batch_size"}
+      output: {0: "batch_size"}
+    optimize: true
+    
+  coreml:
+    compute_units: "CPU_AND_GPU"
+    minimum_deployment_target: "iOS13"
+    
+# 성능 목표 (VGG-16 대비)
+performance_targets:
+  val_mae: 0.55    # VGG-16 최고: 0.546
+  test_mae: 1.5    # VGG-16 최고: 1.527
+  inference_time: 50  # ms (VGG-16: 85ms 대비 향상 목표)
+  model_size: 25   # MB (VGG-16: 105MB 대비 대폭 감소)
+  parameters: 6    # Million (VGG-16: 138M 대비 대폭 감소)
+
+# 실험 메모
+notes: |
+  EfficientNet-B0 기반 수박 당도 예측 모델 실험 (데이터 분할 비율 조정)
+  
+  변경사항:
+  - 데이터 분할 비율: 70:15:15 → 60:20:20
+  - Validation set 확대로 더 신뢰할 수 있는 성능 평가
+  - 기존 100% 정확도 문제 해결
+  
+  목표:
+  - VGG-16 대비 파라미터 수 96% 감소 (138M → 5.3M)
+  - 유사한 성능 유지 또는 향상
+  - 모바일 배포 최적화 (크기, 속도)
+  
+  기대 효과:
+  - 훨씬 빠른 추론 속도
+  - 작은 모델 크기로 iOS 배포 용이
+  - 과적합 위험 감소
+  - 신뢰할 수 있는 성능 평가
+  
+  비교 기준:
+  - VGG-16 최고 성능: Val MAE 0.546, Test MAE 1.527
+  - 파라미터 수, 추론 속도, 모델 크기 모두 개선 목표 

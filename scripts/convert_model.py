@@ -58,11 +58,43 @@ class ModelConverter:
             # 체크포인트 로드 (PyTorch 2.6+ 호환성)
             checkpoint = torch.load(self.model_path, map_location=self.device, weights_only=False)
             
-            # 모델 초기화
-            model = VGGWatermelon(
-                input_channels=3,
-                pretrained=False  # 이미 훈련된 모델이므로 False
-            )
+            # 체크포인트에서 모델 설정 추출
+            model_config = checkpoint.get('model_config', {})
+            model_name = model_config.get('model_name', 'VGGWatermelon')
+            backbone = model_config.get('backbone', 'VGG-16')
+            fc_hidden_size = model_config.get('fc_hidden_size', 512)
+            dropout_rate = model_config.get('dropout_rate', 0.5)
+            
+            print(f"📊 모델 정보: {model_name} (백본: {backbone})")
+            print(f"📊 모델 설정: FC Hidden Size={fc_hidden_size}, Dropout={dropout_rate}")
+            
+            # 모델 타입에 따라 적절한 모델 생성
+            if 'EfficientNet' in model_name:
+                print("🔧 EfficientNet 모델 로딩...")
+                from src.models.efficientnet_watermelon import create_efficientnet_watermelon
+                model = create_efficientnet_watermelon(
+                    pretrained=False,
+                    dropout_rate=dropout_rate,
+                    num_fc_layers=model_config.get('fc_layers', 2),
+                    fc_hidden_size=fc_hidden_size
+                )
+            elif 'MelSpecCNN' in model_name:
+                print("🔧 MelSpecCNN 모델 로딩...")
+                from src.models.melspec_cnn_watermelon import create_melspec_cnn_watermelon
+                model = create_melspec_cnn_watermelon(
+                    input_channels=model_config.get('input_channels', 3),
+                    base_channels=model_config.get('base_channels', 32),
+                    dropout_rate=dropout_rate
+                )
+            else:
+                print("🔧 VGG 모델 로딩...")
+                # 기존 VGG 모델 로딩
+                model = VGGWatermelon(
+                    input_channels=3,
+                    pretrained=False,  # 이미 훈련된 모델이므로 False
+                    fc_hidden_size=fc_hidden_size,
+                    dropout_rate=dropout_rate
+                )
             
             # 가중치 로드
             if 'model_state_dict' in checkpoint:

@@ -20,13 +20,13 @@ class AudioAugmentation:
     """
     
     def __init__(self, 
-                 sample_rate: int = 22050,
+                 sample_rate: int = 16000,
                  random_seed: Optional[int] = None):
         """
         AudioAugmentation 초기화
         
         Args:
-            sample_rate (int): 샘플링 레이트 (기본값: 22050)
+            sample_rate (int): 샘플링 레이트 (기본값: 16000)
             random_seed (int, optional): 랜덤 시드
         """
         self.sample_rate = sample_rate
@@ -252,7 +252,7 @@ class RandomAudioAugmentation:
     def __init__(self, 
                  augmentation_config: Optional[Dict] = None,
                  probability: float = 0.5,
-                 sample_rate: int = 22050,
+                 sample_rate: int = 16000,
                  random_seed: Optional[int] = None):
         """
         RandomAudioAugmentation 초기화
@@ -260,7 +260,7 @@ class RandomAudioAugmentation:
         Args:
             augmentation_config (Dict, optional): 증강 설정
             probability (float): 각 증강 기법 적용 확률 (기본값: 0.5)
-            sample_rate (int): 샘플링 레이트 (기본값: 22050)
+            sample_rate (int): 샘플링 레이트 (기본값: 16000)
             random_seed (int, optional): 랜덤 시드
         """
         self.probability = probability
@@ -465,7 +465,7 @@ def create_augmentation_transform(config: Dict) -> Callable:
     audio_aug = RandomAudioAugmentation(
         augmentation_config=config.get('audio_augmentation'),
         probability=config.get('probability', 0.5),
-        sample_rate=config.get('sample_rate', 22050),
+        sample_rate=config.get('sample_rate', 16000),
         random_seed=config.get('random_seed')
     )
     

@@ -96,7 +96,7 @@ python scripts/convert_to_coreml.py --onnx models/watermelon_model.onnx
 - **총 샘플 수**: 약 1,500+ 오디오 파일
 
 ### 전처리 표준
-- **샘플링 레이트**: 22050 Hz
+- **샘플링 레이트**: 16000 Hz
 - **멜-스펙트로그램**: n_mels=128, fft_size=2048, hop_length=512
 - **정규화**: 0-1 범위로 스케일링
 - **데이터 증강**: noise, time shift, pitch shift

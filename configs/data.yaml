@@ -38,7 +38,7 @@ audio:
   output_format: ".wav"
   
   # Basic Audio Parameters
-  sample_rate: 22050    # Target sampling rate (Hz)
+  sample_rate: 16000    # Target sampling rate (Hz)
   duration: null        # Max duration (seconds), null for no limit
   normalize: true       # Normalize audio amplitude
   

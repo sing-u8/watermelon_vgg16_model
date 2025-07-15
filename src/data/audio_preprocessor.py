@@ -22,7 +22,7 @@ class AudioPreprocessor:
     오디오 파일을 멜-스펙트로그램으로 변환하는 전처리기
     
     Attributes:
-        sample_rate (int): 목표 샘플링 레이트 (기본값: 22050)
+        sample_rate (int): 목표 샘플링 레이트 (기본값: 16000)
         n_mels (int): 멜 필터뱅크 개수 (기본값: 128)
         n_fft (int): FFT 윈도우 크기 (기본값: 2048)
         hop_length (int): hop 길이 (기본값: 512)
@@ -41,7 +41,7 @@ class AudioPreprocessor:
             self.load_config(config_path)
         else:
             # 기본 설정값
-            self.sample_rate = 22050
+            self.sample_rate = 16000
             self.n_mels = 128
             self.n_fft = 2048
             self.hop_length = 512
@@ -68,7 +68,7 @@ class AudioPreprocessor:
         
         audio_config = config.get('audio', {})
         
-        self.sample_rate = audio_config.get('sample_rate', 22050)
+        self.sample_rate = audio_config.get('sample_rate', 16000)
         self.n_mels = audio_config.get('n_mels', 128)
         self.n_fft = audio_config.get('n_fft', 2048)
         self.hop_length = audio_config.get('hop_length', 512)

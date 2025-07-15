@@ -342,7 +342,7 @@ def create_config(model_type: str) -> dict:
             'num_workers': 4,
             'pin_memory': True,
             'audio_params': {
-                'sample_rate': 22050,
+                'sample_rate': 16000,
                 'n_mels': 128,
                 'n_fft': 2048,
                 'hop_length': 512,

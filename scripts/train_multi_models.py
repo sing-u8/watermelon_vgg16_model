@@ -41,7 +41,7 @@ def train_efficientnet():
             "num_workers": 4,
             "pin_memory": True,
             "audio_params": {
-                "sample_rate": 22050,
+                "sample_rate": 16000,
                 "n_mels": 128,
                 "n_fft": 2048,
                 "hop_length": 512,
@@ -159,7 +159,7 @@ def train_melspec_cnn():
             "num_workers": 4,
             "pin_memory": True,
             "audio_params": {
-                "sample_rate": 22050,
+                "sample_rate": 16000,
                 "n_mels": 128,
                 "n_fft": 2048,
                 "hop_length": 512,
